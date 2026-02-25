@@ -42,20 +42,36 @@ class LoginAPIView(APIView):
     authentication_classes = []
 
     def post(self, request):
-        name = request.data.get("name")
+        username = (request.data.get("username")or request.data.get("mobile_number")or request.data.get("email_id"))
         password = request.data.get("password")
 
-        if not name or not password:
+        if not username or not password:
             return Response(
-                {"success": False, "message": "name and password are required"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        {"success": False, "message": "Username and password are required"},
+        status=status.HTTP_400_BAD_REQUEST
+    )
 
-        # Find user by email, mobile, or name
-        user = User.objects.filter(
-            Q(email_id__iexact=name) | Q(mobile_number=name) | Q(name__iexact=name),
-            deleted_at__isnull=True
-        ).first()
+        # 🔹 Detect login type
+        if username.isdigit():
+            # Mobile number login
+            user = User.objects.filter(
+                mobile_number=username,
+                deleted_at__isnull=True
+            ).first()
+
+        elif "@" in username:
+            # Email login
+            user = User.objects.filter(
+                email_id__iexact=username,
+                deleted_at__isnull=True
+            ).first()
+
+        else:
+            # Name login
+            user = User.objects.filter(
+                name__iexact=username,
+                deleted_at__isnull=True
+            ).first()
 
         if not user:
             return Response(
@@ -63,17 +79,13 @@ class LoginAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # Ensure password is hashed
-        if not user.password.startswith('pbkdf2_'):
-            user.password = make_password(user.password)
-            user.save()
-
-        # Check password
+        # 🔹 Password check
         if not check_password(password, user.password):
             return Response(
                 {"success": False, "message": "Password is incorrect"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
+
         try:
             tokens = token_generate(user, request)
         except IntegrityError:

@@ -1,9 +1,15 @@
 # App Project 
- 
-## Description 
-This is a Django-based backend with custom authentication. 
- 
-## Setup 
-1. Install: `pip install -r requirements.txt` 
-2. Migrate: `python manage.py migrate` 
-3. Run: `python manage.py runserver` 
+
+venv file:-
+python -m venv venv
+
+migrations:-
+
+1. python manage.py makemigrations
+2. python manage.py migrate
+
+run server:-
+1. python manage.py runserver
+
+Seeder:-
+1. python manage.py seed_admin
