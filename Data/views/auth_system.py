@@ -50,28 +50,24 @@ class LoginAPIView(APIView):
         {"success": False, "message": "Username and password are required"},
         status=status.HTTP_400_BAD_REQUEST
     )
-
-        # 🔹 Detect login type
         if username.isdigit():
-            # Mobile number login
             user = User.objects.filter(
                 mobile_number=username,
                 deleted_at__isnull=True
             ).first()
 
-        elif "@" in username:
-            # Email login
+        else:
             user = User.objects.filter(
                 email_id__iexact=username,
                 deleted_at__isnull=True
             ).first()
 
-        else:
-            # Name login
-            user = User.objects.filter(
-                name__iexact=username,
-                deleted_at__isnull=True
-            ).first()
+        # else:
+        #     # Name login
+        #     user = User.objects.filter(
+        #         name__iexact=username,
+        #         deleted_at__isnull=True
+        #     ).first()
 
         if not user:
             return Response(
