@@ -3,9 +3,9 @@ from django.db import models
 class App_Data(models.Model):
     
     title = models.CharField(max_length=200)
-    url_test = models.URLField(max_length=500)
+    url = models.URLField(max_length=500)
     description = models.TextField(max_length=255, blank=True, null=True)
-    is_active = models.BooleanField(default=True)
+    status = models.BooleanField(default=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey('Data.User',on_delete=models.SET_NULL, null=True, blank= True, related_name='data_created')
