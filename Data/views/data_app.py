@@ -10,7 +10,7 @@ from ..permissions.authentication import LoginTokenAuthentication
 from ..utils.pagination import CustomPagination
 from rest_framework.permissions import IsAuthenticated
 
-SANITIZE_FIELDS=["title","url_test","description"]
+SANITIZE_FIELDS=["title","url","description"]
 
 class AppDataAPIView(APIView):
     authentication_classes = [LoginTokenAuthentication]
@@ -128,7 +128,7 @@ class AppDataAPIView(APIView):
         except App_Data.DoesNotExist:
             return Response({"error":"Data not found to delete"},status=status.HTTP_404_NOT_FOUND)
         
-        app_data.is_active=False
+        app_data.status=False
         app_data.updated_by=request.user
         app_data.deleted_at=timezone.now()
         app_data.deleted_by=request.user()
