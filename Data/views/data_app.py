@@ -130,7 +130,9 @@ class AppDataAPIView(APIView):
         
         app_data.is_active=False
         app_data.updated_by=request.user
-        app_data.updated_at=timezone.now()
+        app_data.deleted_at=timezone.now()
+        app_data.deleted_by=request.user()
+        app_data.updated_at =timezone.now()
         app_data.save()
         return Response({"success":True, "message":"Data deleted successfully"}, status=status.HTTP_200_OK)
     
