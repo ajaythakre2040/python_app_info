@@ -52,7 +52,7 @@ class UserAPIView(APIView):
                 password=make_password(data["password"]),
                 created_by=request.user,
                 updated_by=request.user,
-                is_active=True  # ensure user is active on creation
+                is_active=True
             )
             # Save password in history
             Password_History.objects.create(user=user, password=user.password)
@@ -70,9 +70,7 @@ class UserAPIView(APIView):
 
         if password:
             try:
-                # Validate password
                 data["password"] = validate_custom_password(password)
-                # Check password reuse
                 if is_password_reused(user, password):
                     return Response({"error": "Password was used recently"}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as e:
@@ -96,7 +94,9 @@ class UserAPIView(APIView):
     def delete(self, request, id):
         user = get_object_or_404(User, id=id, deleted_at__isnull=True, is_active=True)
         user.deleted_at = timezone.now()
+        user.deleted_by = request.user  
         user.is_active = False
         user.updated_by = request.user
+        user.updated_at = timezone.now()
         user.save()
         return Response({"success": True, "message": "User deleted successfully"}, status=status.HTTP_200_OK)
