@@ -12,7 +12,7 @@ from django.db.models import Q
 from ..permissions.authentication import LoginTokenAuthentication 
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import IntegrityError
-##================= Register API =================#
+##======================================== Register API =================================#
 class RegisterAPIView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
@@ -36,7 +36,7 @@ class RegisterAPIView(APIView):
             }
         }, status=status.HTTP_201_CREATED)
 
-#================= Login API =================#
+#================================================= Login API =========================================#
 class LoginAPIView(APIView):
     permission_classes = []
     authentication_classes = []
@@ -105,7 +105,7 @@ class LoginAPIView(APIView):
                 "refresh_token": tokens["refresh"]
             }
         }, status=status.HTTP_200_OK)
-#==================================Logout API=========================================#
+#=================================================Logout API========================================================#
 class LogoutAPIView(APIView):
     permission_classes=[IsAuthenticated]
     authentication_classes=[LoginTokenAuthentication]
