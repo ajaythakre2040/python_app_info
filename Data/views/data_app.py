@@ -20,11 +20,11 @@ class AppDataAPIView(APIView):
     def get(self, request, id=None):
         try:
             if id:
-                app_data = get_object_or_404(App_Data, id=id, status=True)
+                app_data = get_object_or_404(App_Data, id=id, deleted_at__isnull=True)
                 serializer = AppDataSerializer(app_data)
                 return Response({"success": True, "data": serializer.data}, status=status.HTTP_200_OK)
             
-            queryset = App_Data.objects.filter(status=True).order_by("-id")
+            queryset = App_Data.objects.filter(deleted_at__isnull=True).order_by("-id")
 
             paginator = CustomPagination()
             paginated_queryset = paginator.paginate_queryset(queryset, request, view=self)
@@ -67,7 +67,7 @@ class AppDataAPIView(APIView):
 #=============================================PATCH============================#
     def patch(self, request, id):
         try:
-            app_data = get_object_or_404(App_Data, id=id, status=True)
+            app_data = get_object_or_404(App_Data, id=id, deleted_at__isnull=True)
         except App_Data.DoesNotExist:
             return Response(
                 {"error": "Data not found to update"},
@@ -104,15 +104,13 @@ class AppDataAPIView(APIView):
 #===========================================DELETE======================================#
     def delete(self, request, id):
         try:
-            app_data = get_object_or_404(App_Data, id=id, status=True)
+            app_data = get_object_or_404(App_Data, id=id, deleted_at__isnull=True)
         except App_Data.DoesNotExist:
             return Response({"error":"Data not found to delete"}, status=status.HTTP_404_NOT_FOUND)
         
-        # Soft delete
-        app_data.status = False
-        app_data.updated_by = request.user
         app_data.deleted_at = timezone.now()
         app_data.deleted_by = request.user
+        app_data.updated_by = request.user
         app_data.updated_at = timezone.now()
         app_data.save()
 
