@@ -17,11 +17,14 @@ class domain_logs(models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey('data.app_data',on_delete=models.SET_NULL,null=True,blank=True,related_name='deleted_logs')
 
-    def save_log(self, status: bool, json_data: dict = None):
-        
+    def save_log(self, status: bool, http_status: int = None):
+
         self.status = status
         self.url = self.app_data.url
-        self.json_result = json_data or {"status": 200 if status else 0, "active": status}
+        self.json_result = {
+        "active": status,
+        "http_status": http_status
+    }
         self.save()
 
     def __str__(self):

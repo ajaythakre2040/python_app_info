@@ -34,4 +34,9 @@ DELETE             /api/app-data/<id>/              →DELETE APP DATA
 GET               /api/users/total-history/          →GET ALL REGISTER USER
 GET               /api/users/active/                 →GET ACTIVE USER 
 GET               /api/users/deactive/               →GET DEACTIVE USER 
+
+
+#====================Cron domain ====================================#
 GET               /api/cron/check-domains/           →GET CRON DOMAIN 
+GET               /api/cron/active-domains/          →GET  ALL ACTIVE CRON DOMAIN
+GET               /api/cron/deative-domains/         →GET ALL DEACTIVE CRON DOMAIN

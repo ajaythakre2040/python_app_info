@@ -23,33 +23,45 @@ def check_domain_status(domain):
             "http_status": None,
             "exception": str(e)
         }
-
-
+    
 def update_domain_status(domain):
 
+    old_status = domain.status
     is_active, debug_info = check_domain_status(domain)
 
-    # Update app_data status
-    domain.status = is_active
-    domain.save()
+    # Update domain table only if changed
+    if old_status != is_active:
+        domain.status = is_active
+        domain.save(update_fields=['status'])
 
-    # Check last log
-    last_log = domain_logs.objects.filter(app_data=domain).order_by('-created_at').first()
+    # Get last log
+    last_log = domain_logs.objects.filter(
+        app_data=domain
+    ).order_by('-created_at').first()
 
+    # Update only if changed OR first time
     if not last_log or last_log.status != is_active:
-        domain_logs.objects.create(
-            app_data=domain,
-            status=is_active,
-            json_result={
-                "status": 200 if is_active else 0,
-                "active": is_active,
-                "debug": debug_info
+
+        if last_log:
+            last_log.status = is_active
+            last_log.url = domain.url
+            last_log.json_result = {
+                "status": debug_info["http_status"],
+                "active": is_active
             }
-        )
+            last_log.save(update_fields=['status', 'url', 'json_result'])
+        else:
+            domain_logs.objects.create(
+                app_data=domain,
+                url=domain.url,
+                status=is_active,
+                json_result={
+                    "status": debug_info["http_status"],
+                    "active": is_active
+                }
+            )
 
     return is_active, debug_info
-
-
 # ========================= All Domains Cron =========================
 class CronDomainStatusAPIView(APIView):
     def get(self, request):
