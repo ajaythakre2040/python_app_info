@@ -42,32 +42,32 @@ class LoginAPIView(APIView):
     authentication_classes = []
 
     def post(self, request):
-        username = (request.data.get("username")or request.data.get("mobile_number")or request.data.get("email_id"))
+        username = request.data.get("username")
         password = request.data.get("password")
 
         if not username or not password:
             return Response(
-        {"success": False, "message": "Username and password are required"},
-        status=status.HTTP_400_BAD_REQUEST
-    )
+                {"success": False, "message": "Username and password are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         if username.isdigit():
             user = User.objects.filter(
                 mobile_number=username,
                 deleted_at__isnull=True
             ).first()
 
-        else:
+        elif "@" in username and "." in username:
+
             user = User.objects.filter(
                 email_id__iexact=username,
                 deleted_at__isnull=True
             ).first()
-
-        # else:
-        #     # Name login
-        #     user = User.objects.filter(
-        #         name__iexact=username,
-        #         deleted_at__isnull=True
-        #     ).first()
+        else:
+            user = User.objects.filter(
+                name__iexact=username,
+                deleted_at__isnull=True
+            ).first()
 
         if not user:
             return Response(
@@ -75,7 +75,6 @@ class LoginAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # 🔹 Password check
         if not check_password(password, user.password):
             return Response(
                 {"success": False, "message": "Password is incorrect"},

@@ -2,7 +2,7 @@ import hashlib
 from datetime import timedelta
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
-from Data.models.login_logout_history import Login_logout_history
+from data.models.login_logout_history import Login_logout_history
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')

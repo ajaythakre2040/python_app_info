@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from ..models import User
 
-class UserHistorySerializer(serializers.ModelSerializer):
+class DomainSerializer(serializers.ModelSerializer):
     
     created_by_name = serializers.CharField(source='created_by.name', default=None)
     updated_by_name = serializers.CharField(source='updated_by.name', default=None)

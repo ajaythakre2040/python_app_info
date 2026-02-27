@@ -1,6 +1,6 @@
 
 # project URLS Documentation
-http://127.0.0.1:8000/api/
+http://127.0.0.1:8000/
 
 ######################## Authentication ###########################
 
@@ -34,3 +34,4 @@ DELETE             /api/app-data/<id>/              →DELETE APP DATA
 GET               /api/users/total-history/          →GET ALL REGISTER USER
 GET               /api/users/active/                 →GET ACTIVE USER 
 GET               /api/users/deactive/               →GET DEACTIVE USER 
+GET               /api/cron/check-domains/           →GET CRON DOMAIN 

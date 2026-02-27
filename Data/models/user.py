@@ -5,7 +5,7 @@ from ..managers import CustomUserManager
 class User(AbstractBaseUser, PermissionsMixin):
     name= models.CharField(max_length=100)
     mobile_number =models.CharField(max_length=15,unique=True,null=True,blank=True)
-    email_id = models.EmailField(unique=True,null=True,blank=True)
+    email_id = models.EmailField(unique=True)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -23,15 +23,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = 'email_id'
     REQUIRED_FIELDS = ['name','mobile_number']
-
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            total_users = User.objects.count()
-            if total_users >=10:
-                oldest_user = User.objects.order_by('created_at').first()
-                if oldest_user:
-                    oldest_user.delete()
-        super().save(*args, **kwargs) 
 
     def __str__(self):
         return self.email_id

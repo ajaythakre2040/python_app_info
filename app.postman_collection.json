@@ -14,7 +14,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \r\n    \"name\": \"Shiv Young\",\r\n    \"email_id\": \"shiv1@example.com\",\r\n    \"mobile_number\": \"985000168\",\r\n    \"password\": \"Pass@1234\"\r\n}",
+          "raw": "{\r\n  \r\n    \"name\": \"Shyam khesav\",\r\n    \"email_id\": \"keshav1@example.com\",\r\n    \"mobile_number\": \"6787594867\",\r\n    \"password\": \"Pass@1234\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -48,7 +48,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"name\":\"Shiv Young\",\r\n    \"password\":\"Pass@1234\"\r\n}",
+          "raw": "{\r\n    \"username\":\"Shyam Khesav\",\r\n    \"password\":\"Pass@1234\"\r\n}\r\n\r\n",
           "options": {
             "raw": {
               "language": "json"
@@ -217,7 +217,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"title\": \"The story\",\r\n    \"url_test\": \"https://example.com\",\r\n    \"description\": \"This is data\"\r\n}",
+          "raw": "// {\r\n//     \"title\": \"The story\",\r\n//     \"url\": \"https://example.com\",\r\n//     \"description\": \"This is data\"\r\n// }\r\n\r\n{\r\n    \"title\": \"app data\",\r\n    \"url\":\"http://127.0.0.1:8000/api/app-data/\",\r\n    \"description\":\"...\",\r\n    \"status\":\"True\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -312,7 +312,7 @@
           "raw": ""
         },
         "url": {
-          "raw": "http://127.0.0.1:8000/api/app-data/1/",
+          "raw": "http://127.0.0.1:8000/api/app-data/2/",
           "protocol": "http",
           "host": [
             "127",
@@ -324,7 +324,7 @@
           "path": [
             "api",
             "app-data",
-            "1",
+            "2",
             ""
           ]
         }
@@ -415,7 +415,7 @@
       "response": []
     },
     {
-      "name": "Total domain",
+      "name": "Total domain  Register User",
       "protocolProfileBehavior": {
         "disableBodyPruning": true
       },
@@ -457,15 +457,42 @@
       "response": []
     },
     {
-      "name": "total active",
+      "name": "total active register user",
       "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
         "method": "GET",
-        "header": []
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/users/active/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "users",
+            "active",
+            ""
+          ]
+        }
       },
       "response": []
     },
     {
-      "name": "total deactive",
+      "name": "total deactive register user",
       "protocolProfileBehavior": {
         "disableBodyPruning": true
       },
@@ -630,6 +657,111 @@
             "api",
             "users",
             "2",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "domain Cron",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/cron/check-domains/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "cron",
+            "check-domains",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "domain cron active",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/cron/active-domains/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "cron",
+            "active-domains",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "domain cron deactive",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/cron/deactive-domains/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "cron",
+            "deactive-domains",
             ""
           ]
         }

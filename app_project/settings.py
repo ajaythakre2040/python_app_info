@@ -52,10 +52,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt.token_blacklist',
-    'Data',  
+    'data',  
 ]
 
-AUTH_USER_MODEL = 'Data.User'  
+AUTH_USER_MODEL = 'data.User'  
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
