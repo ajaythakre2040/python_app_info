@@ -18,95 +18,82 @@ class AppDataAPIView(APIView):
     def get(self, request, id=None):
         try:
 
-            # ================= GET BY USER ID (Latest 1 record) =================
+            # ================= GET BY USER ID (Last 5 Records) =================
             if id:
-                instance = (
+
+                user_records = (
                     app_data.objects
-                    .filter(
-                        user_id=id,
-                        deleted_at__isnull=True
-                    )
-                    .order_by('-created_at')
-                    .first()
+                    .filter(user_id=id, deleted_at__isnull=True)
+                    .order_by('-created_at')[:5]
                 )
 
-                if not instance:
+                if not user_records:
                     return Response(
                         {"message": "No data found"},
                         status=status.HTTP_404_NOT_FOUND
                     )
 
-                data = AppDataSerializer(instance).data
+                result = []
+
+                for obj in user_records:
+                    data = AppDataSerializer(obj).data
+
+                    last_log = (
+                        domain_logs.objects
+                        .filter(app_data=obj)
+                        .order_by('-created_at')
+                        .first()
+                    )
+
+                    data["last_log"] = {
+                        "url": last_log.url,
+                        "status": last_log.status,
+                        "created_at": last_log.created_at
+                    } if last_log else None
+
+                    result.append(data)
+
+                return Response(
+                    {"success": True, "data": result},
+                    status=status.HTTP_200_OK
+                )
+
+            # ================= GET ALL (Each User ka Latest Record Only) =================
+
+            latest_records = (
+                app_data.objects
+                .filter(deleted_at__isnull=True)
+                .order_by('user_id', '-created_at')
+                .distinct('user_id')
+            )
+
+            paginator = self.pagination_class()
+            page = paginator.paginate_queryset(latest_records, request)
+
+            result = []
+
+            for obj in page:
+                data = AppDataSerializer(obj).data
 
                 last_log = (
                     domain_logs.objects
-                    .filter(app_data=instance)
+                    .filter(app_data=obj)
                     .order_by('-created_at')
                     .first()
                 )
 
-                data["last_logs"] = [{
+                data["last_log"] = {
                     "url": last_log.url,
                     "status": last_log.status,
                     "created_at": last_log.created_at
-                }] if last_log else []
+                } if last_log else None
 
-                return Response(
-                    {"success": True, "data": data},
-                    status=status.HTTP_200_OK
-                )
-
-            # ================= GET ALL (Har User ke Latest 5 Records) =================
-
-            user_ids = (
-                app_data.objects
-                .filter(deleted_at__isnull=True)
-                .values_list('user_id', flat=True)
-                .distinct()
-            )
-
-            result = []
-
-            for user_id in user_ids:
-
-                user_records = (
-                    app_data.objects
-                    .filter(
-                        user_id=user_id,
-                        deleted_at__isnull=True
-                    )
-                    .order_by('-created_at')[:5]
-                )
-
-                for obj in user_records:
-
-                    data = AppDataSerializer(obj).data
-
-                    logs = (
-                        domain_logs.objects
-                        .filter(app_data=obj)
-                        .order_by('-created_at')[:5]
-                    )
-
-                    data["last_logs"] = [
-                        {
-                            "url": log.url,
-                            "status": log.status,
-                            "created_at": log.created_at
-                        }
-                        for log in logs
-                    ]
-
-                    result.append(data)
-
-            paginator = self.pagination_class()
-            paginated_data = paginator.paginate_queryset(result, request)
+                result.append(data)
 
             return paginator.get_paginated_response({
                 "success": True,
-                "data": paginated_data
+                "data": result
             })
-
 
         except Exception as e:
             return Response(
