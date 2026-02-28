@@ -8,8 +8,6 @@ from ..serializer import AppDataSerializer
 from ..permissions.authentication import LoginTokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from ..utils.pagination import CustomPagination
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
 
 class AppDataAPIView(APIView):
 
