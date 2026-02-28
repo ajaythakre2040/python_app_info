@@ -10,14 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from ..utils.pagination import CustomPagination
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from ..models import app_data, domain_logs
-from ..serializer import AppDataSerializer
-from ..permissions.authentication import LoginTokenAuthentication
-from ..utils.pagination import CustomPagination
+
 class AppDataAPIView(APIView):
 
     authentication_classes = [LoginTokenAuthentication]
