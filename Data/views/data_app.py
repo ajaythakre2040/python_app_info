@@ -18,55 +18,71 @@ from ..models import app_data, domain_logs
 from ..serializer import AppDataSerializer
 from ..permissions.authentication import LoginTokenAuthentication
 from ..utils.pagination import CustomPagination
-
 class AppDataAPIView(APIView):
 
     authentication_classes = [LoginTokenAuthentication]
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
-    # ========================================= GET =========================================
     def get(self, request, id=None):
         try:
 
-            # ================= GET BY APP ID (Single Record) =================
+            # ================= GET BY USER ID (Last 5 Records) =================
             if id:
-                instance = get_object_or_404(
-                    app_data,
-                    id=id,
-                    deleted_at__isnull=True
+
+                user_records = (
+                    app_data.objects
+                    .filter(user_id=id, deleted_at__isnull=True)
+                    .order_by('-created_at')[:5]
                 )
 
-                data = AppDataSerializer(instance).data
+                if not user_records:
+                    return Response(
+                        {"message": "No data found"},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
 
-                last_log = (
-                    domain_logs.objects
-                    .filter(app_data=instance)
-                    .order_by('-created_at')
-                    .first()
-                )
+                result = []
 
-                data["last_log"] = {
-                    "url": last_log.url,
-                    "status": last_log.status,
-                    "created_at": last_log.created_at
-                } if last_log else None
+                for obj in user_records:
+                    data = AppDataSerializer(obj).data
+
+                    last_log = (
+                        domain_logs.objects
+                        .filter(app_data=obj)
+                        .order_by('-created_at')
+                        .first()
+                    )
+
+                    data["last_log"] = {
+                        "url": last_log.url,
+                        "status": last_log.status,
+                        "created_at": last_log.created_at
+                    } if last_log else None
+
+                    result.append(data)
 
                 return Response(
-                    {"success": True, "data": data},
+                    {"success": True, "data": result},
                     status=status.HTTP_200_OK
                 )
 
-            # ================= GET ALL (Latest 5 Overall Records) =================
-            records = (
+            # ================= GET ALL (Each User ka Latest Record Only) =================
+
+            # PostgreSQL required for distinct('user_id')
+            latest_records = (
                 app_data.objects
                 .filter(deleted_at__isnull=True)
-                .order_by('-created_at')[:5]
+                .order_by('user_id', '-created_at')
+                .distinct('user_id')
             )
+
+            paginator = self.pagination_class()
+            page = paginator.paginate_queryset(latest_records, request)
 
             result = []
 
-            for obj in records:
+            for obj in page:
                 data = AppDataSerializer(obj).data
 
                 last_log = (
@@ -84,17 +100,16 @@ class AppDataAPIView(APIView):
 
                 result.append(data)
 
-            return Response(
-                {"success": True, "data": result},
-                status=status.HTTP_200_OK
-            )
+            return paginator.get_paginated_response({
+                "success": True,
+                "data": result
+            })
 
         except Exception as e:
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
     # ========================================= POST =========================================
     def post(self, request):
         try:
