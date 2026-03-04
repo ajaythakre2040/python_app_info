@@ -23,81 +23,45 @@ def check_domain_status(domain):
             "http_status": None,
             "exception": str(e)
         }
-
-# def update_domain_status(domain):
-
-#     old_status = domain.status
-#     is_active, debug_info = check_domain_status(domain)
-
-#     # Update domain table only if changed
-#     if old_status != is_active:
-#         domain.status = is_active
-#         domain.save(update_fields=['status'])
-
-#     # Get last log
-#     last_log = domain_logs.objects.filter(
-#         app_data=domain
-#     ).order_by('-created_at').first()
-
-#     # Update only if changed OR first time
-#     if not last_log or last_log.status != is_active:
-
-#         if last_log:
-#             last_log.status = is_active
-#             last_log.url = domain.url
-#             last_log.json_result = {
-#                 "status": debug_info["http_status"],
-#                 "active": is_active
-#             }
-#             last_log.save(update_fields=['status', 'url', 'json_result'])
-#         else:
-#             domain_logs.objects.create(
-#                 app_data=domain,
-#                 url=domain.url,
-#                 status=is_active,
-#                 json_result={
-#                     "status": debug_info["http_status"],
-#                     "active": is_active
-#                 }
-#             )
-
-#     return is_active, debug_info
-
-
+    
 def update_domain_status(domain):
+
+    old_status = domain.status
     is_active, debug_info = check_domain_status(domain)
 
-    # 1. Main Table (app_data) ka status update
-    if domain.status != is_active:
+    # Update domain table only if changed
+    if old_status != is_active:
         domain.status = is_active
-        domain.save(update_fields=["status"])
+        domain.save(update_fields=['status'])
 
-    # 2. Hamesha Naya Log Create karein (domain_logs)
-    domain_logs.objects.create(
-        app_data=domain,
-        url=domain.url,
-        status=is_active,
-        json_result={
-            "http_status": debug_info["http_status"],
-            "active": is_active,
-            "exception": debug_info["exception"],
-        },
-    )
+    # Get last log
+    last_log = domain_logs.objects.filter(
+        app_data=domain
+    ).order_by('-created_at').first()
 
-    # 3. Sirf 5 Logs maintain karne ka logic
-    # Sabse naye 5 logs ki IDs nikaalein
-    recent_logs_ids = (
-        domain_logs.objects.filter(app_data=domain)
-        .order_by("-created_at")
-        .values_list("id", flat=True)[:5]
-    )
+    # Update only if changed OR first time
+    if not last_log or last_log.status != is_active:
 
-    # In 5 IDs ke alawa baaki saari purani entries delete kar dein
-    domain_logs.objects.filter(app_data=domain).exclude(id__in=recent_logs_ids).delete()
+        if last_log:
+            last_log.status = is_active
+            last_log.url = domain.url
+            last_log.json_result = {
+                "status": debug_info["http_status"],
+                "active": is_active
+            }
+            last_log.save(update_fields=['status', 'url', 'json_result'])
+        else:
+            domain_logs.objects.create(
+                app_data=domain,
+                url=domain.url,
+                status=is_active,
+                json_result={
+                    "status": debug_info["http_status"],
+                    "active": is_active
+                }
+            )
 
     return is_active, debug_info
-
-
 # ========================= All Domains Cron =========================
 class CronDomainStatusAPIView(APIView):
     def get(self, request):
