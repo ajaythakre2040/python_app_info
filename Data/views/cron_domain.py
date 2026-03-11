@@ -47,7 +47,7 @@ def update_domain_status(domain):
     domain_logs.objects.filter(app_data=domain).exclude(id__in=recent_logs_ids).delete()
     return is_active, debug_info
 
-
+#==================================All Cron Views ==============================#
 class CronDomainStatusAPIView(APIView):
     authentication_classes = [LoginTokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -68,7 +68,7 @@ class CronDomainStatusAPIView(APIView):
             {"success": True, "checked_domains": result}, status=status.HTTP_200_OK
         )
 
-
+#===============================Active cron views==============================#
 class ActiveDomainCronAPIView(APIView):
     authentication_classes = [LoginTokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -90,7 +90,7 @@ class ActiveDomainCronAPIView(APIView):
             status=status.HTTP_200_OK,
         )
 
-
+#===============================Deactive cron Views==============================#
 class DeactiveDomainCronAPIView(APIView):
     authentication_classes = [LoginTokenAuthentication]
     permission_classes = [IsAuthenticated]
