@@ -5,7 +5,6 @@ class UnblockUser(models.Model):
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="unblock_user")
 
-    name = models.CharField(max_length=150)
     email_id = models.EmailField(null=True, blank=True)
     mobile_number = models.CharField(max_length=15, null=True, blank=True)
 
