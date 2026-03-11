@@ -113,23 +113,24 @@ class LoginAPIView(APIView):
         reset_login_attempts(user)
 
         # -----------------------------
-        # ALREADY LOGIN CHECK
+        # ALREADY LOGIN CHECK (optional)
         # -----------------------------
-        cutoff = timezone.now() - settings.SIMPLE_JWT.get(
-            "ACCESS_TOKEN_LIFETIME", timedelta(hours=10)
-        )
 
-        active_session = Login_logout_history.objects.filter(
-            user=user,
-            logout_time__isnull=True,
-            login_time__gt=cutoff
-        ).first()
-
-        if active_session:
-            return Response(
-                {"success": False, "message": "User already logged in on another device"},
-                status=status.HTTP_403_FORBIDDEN
+        if not getattr(settings, "ALLOW_MULTIPLE_SESSIONS", False):
+            cutoff = timezone.now() - settings.SIMPLE_JWT.get(
+                "ACCESS_TOKEN_LIFETIME", timedelta(hours=10)
             )
+
+            active_session = Login_logout_history.objects.filter(user=user,logout_time__isnull=True,login_time__gt=cutoff).first()
+
+            if active_session:
+                return Response(
+                    {
+                        "success": False,
+                        "message": "User already logged in"
+                    },
+                    status=status.HTTP_403_FORBIDDEN
+                )
 
         # -----------------------------
         # GENERATE TOKENS
@@ -141,15 +142,6 @@ class LoginAPIView(APIView):
                 {"success": False, "message": "Token generation failed"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-        # -----------------------------
-        # LOGIN HISTORY SAVE
-        # -----------------------------
-        Login_logout_history.objects.create(
-            user=user,
-            login_time=timezone.now(),
-            ip_address=request.META.get("REMOTE_ADDR")
-        )
 
         return Response(
             {
@@ -180,9 +172,7 @@ class LogoutAPIView(APIView):
             # mark any active session for this user as logged out
             from django.utils import timezone
             try:
-                # there is no easy way to derive access token from refresh so
-                # we simply deactivate all open records for the user – this
-                # keeps the `active_login` check from blocking future logins.
+                
                 Login_logout_history.objects.filter(
                     user=request.user,
                     logout_time__isnull=True
