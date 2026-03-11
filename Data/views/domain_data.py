@@ -1,16 +1,16 @@
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from ..models import User
+from ..permissions.authentication import LoginTokenAuthentication
 from ..serializer import DomainSerializer
 from ..utils.status import update_user_status
 from ..utils.pagination import CustomPagination
-from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from ..models import app_data, domain_logs
-import requests
+
 #=============================Total User history=======================#
 class TotalUserHistoryAPIView(ListAPIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [LoginTokenAuthentication]
     serializer_class = DomainSerializer
     pagination_class = CustomPagination
 
@@ -20,6 +20,7 @@ class TotalUserHistoryAPIView(ListAPIView):
  #=============================Active User History======================#
 class ActiveUserListAPIView(ListAPIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [LoginTokenAuthentication]
     serializer_class = DomainSerializer
     pagination_class = CustomPagination
 
@@ -33,6 +34,7 @@ class ActiveUserListAPIView(ListAPIView):
 #==============================Deactive User History==========================#
 class DeactiveUserListAPIView(ListAPIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [LoginTokenAuthentication]
     serializer_class = DomainSerializer
     pagination_class = CustomPagination
 

@@ -3,7 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from ..models import app_data, domain_logs
-
+from ..permissions.authentication import LoginTokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 # ========================= Helper Functions =========================
 def check_domain_status(domain):
@@ -23,45 +24,6 @@ def check_domain_status(domain):
             "http_status": None,
             "exception": str(e)
         }
-
-# def update_domain_status(domain):
-
-#     old_status = domain.status
-#     is_active, debug_info = check_domain_status(domain)
-
-#     # Update domain table only if changed
-#     if old_status != is_active:
-#         domain.status = is_active
-#         domain.save(update_fields=['status'])
-
-#     # Get last log
-#     last_log = domain_logs.objects.filter(
-#         app_data=domain
-#     ).order_by('-created_at').first()
-
-#     # Update only if changed OR first time
-#     if not last_log or last_log.status != is_active:
-
-#         if last_log:
-#             last_log.status = is_active
-#             last_log.url = domain.url
-#             last_log.json_result = {
-#                 "status": debug_info["http_status"],
-#                 "active": is_active
-#             }
-#             last_log.save(update_fields=['status', 'url', 'json_result'])
-#         else:
-#             domain_logs.objects.create(
-#                 app_data=domain,
-#                 url=domain.url,
-#                 status=is_active,
-#                 json_result={
-#                     "status": debug_info["http_status"],
-#                     "active": is_active
-#                 }
-#             )
-
-#     return is_active, debug_info
 
 
 def update_domain_status(domain):
@@ -100,6 +62,8 @@ def update_domain_status(domain):
 
 # ========================= All Domains Cron =========================
 class CronDomainStatusAPIView(APIView):
+    authentication_classes = [LoginTokenAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         result = []
 
@@ -123,6 +87,8 @@ class CronDomainStatusAPIView(APIView):
 
 # ========================= Active Domains Cron =========================
 class ActiveDomainCronAPIView(APIView):
+    authentication_classes = [LoginTokenAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         result = []
 
@@ -147,6 +113,8 @@ class ActiveDomainCronAPIView(APIView):
 
 # ========================= Deactive Domains Cron =========================
 class DeactiveDomainCronAPIView(APIView):
+    authentication_classes = [LoginTokenAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         result = []
 

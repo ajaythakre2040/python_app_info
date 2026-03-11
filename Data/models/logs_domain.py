@@ -1,10 +1,8 @@
 from django.db import models
-from django.dispatch import receiver 
-from django.db.models.signals import post_save
 
 class domain_logs(models.Model):
     app_data = models.ForeignKey('data.app_data', on_delete = models.CASCADE)
-    url = models.URLField(max_length = 500)
+    url = models.URLField(max_length = 255)
     status = models.BooleanField(default=True)
     json_result = models.JSONField(null=True, blank=True)
 

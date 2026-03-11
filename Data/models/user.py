@@ -4,10 +4,11 @@ from ..managers import CustomUserManager
 
 class User(AbstractBaseUser, PermissionsMixin):
     name= models.CharField(max_length=100)
-    mobile_number =models.CharField(max_length=15,unique=True,null=True,blank=True)
-    email_id = models.EmailField(unique=True)
+    mobile_number =models.CharField(max_length=10,unique=True,null=True,blank=True)
+    email_id = models.EmailField(unique=True,null=True,blank=True)
 
     is_active = models.BooleanField(default=True)
+    login_attempts = models.IntegerField(default=0)
     is_staff = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)

@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny
 from django.contrib.auth.hashers import make_password
 from ..models import User
 from ..serializer.user import UserSerializer

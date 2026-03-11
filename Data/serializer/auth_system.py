@@ -2,6 +2,8 @@ from rest_framework import serializers
 from ..models import User
 from ..utils import validate_custom_password
 from ..models.password_history import Password_History
+from ..utils.email import check_email
+import re
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only =True, required = True)
@@ -10,18 +12,26 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         model =User
         fields = "__all__"
 
+    def validate_email_id(self, value):
+
+        if not check_email(value):
+            raise serializers.ValidationError(
+            "Invalid email. Email must start with a lowercase letter and follow proper format."
+        )
+
+        return value
+    
     def validate_password(self, value):
             validate_custom_password(value)
             return value
 
     def validate_mobile_number(self, value):
-        
-        if not value.isdigit():
-            raise serializers.ValidationError("Mobile number must contain only digits.")
-      
-        if len(value) > 10:
-            raise serializers.ValidationError("Mobile number cannot be more than 10 digits.")
+        if not re.fullmatch(r'^\d{10}$', value):
+            raise serializers.ValidationError(
+                "Mobile number must contain exactly 10 digits and only numbers are allowed."
+            )
         return value
+
 
     def create(self, validated_data):
         password = validated_data.pop('password')

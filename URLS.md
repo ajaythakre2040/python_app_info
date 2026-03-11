@@ -11,7 +11,7 @@ POST   /api/change-password/user/                    →for change password
 POST  /api/reset-password/user/                      →for reset password
 
 
-#########################User CRUD ###############################
+#########################User CRUD #################################
 
 GET                  /api/users/                     →GET user
 GET BY ID            /api/users/<id>/                →GET BY ID user
@@ -20,23 +20,28 @@ PATCH                /api/users/<id>/                →Update user
 DELETE              /api/users/<id>/                 →Delete user
 
 
-############################## DATA APP #########################
+############################## DATA APP #################################
 
 GET                /api/app-data/                   →GET APP DATA
-GET BY ID          /api/app-data/<id>/              →GET BY ID APP DATA
+GET BY ID          /api/app-data/<user_id>/              →GET BY ID APP DATA
 POST               /api/app-data/                   →POST APP DATA
 PATCH              /api/app-data/<id>/              →Update APP DATA
 DELETE             /api/app-data/<id>/              →DELETE APP DATA
 
 
-###################### DOMAIN #####################################
+############################## DOMAIN #####################################
 
 GET               /api/users/total-history/          →GET ALL REGISTER USER
 GET               /api/users/active/                 →GET ACTIVE USER 
 GET               /api/users/deactive/               →GET DEACTIVE USER 
 
 
-#====================Cron domain ====================================#
+########################### Cron domain #####################################
+
 GET               /api/cron/check-domains/           →GET CRON DOMAIN 
 GET               /api/cron/active-domains/          →GET  ALL ACTIVE CRON DOMAIN
 GET               /api/cron/deative-domains/         →GET ALL DEACTIVE CRON DOMAIN
+
+########################## unblock user #######################################
+
+POST             /api/admin/unblock-user/            → Unblock user

@@ -62,9 +62,7 @@ class AppDataAPIView(APIView):
 
             # ================= 2. GET ALL (Sabhi Domains + Unka Latest Log) =================
             else:
-                queryset = app_data.objects.filter(deleted_at__isnull=True).order_by(
-                    "-created_at"
-                )
+                queryset = (app_data.objects.filter(deleted_at__isnull=True).order_by("user", "-created_at").distinct("user"))
 
                 # Pagination apply karein
                 paginator = self.pagination_class()

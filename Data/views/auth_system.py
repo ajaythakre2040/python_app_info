@@ -4,6 +4,9 @@ from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from ..models import User 
+from django.utils import timezone 
+from datetime import timedelta
+from ..models.login_logout_history import Login_logout_history
 from ..serializer import UserRegisterSerializer,ChangePasswordSerializer,ResetPasswordSerializer
 from ..utils.password import is_password_reused,validate_custom_password
 from ..utils.token_generate import token_generate
@@ -12,6 +15,7 @@ from django.db.models import Q
 from ..permissions.authentication import LoginTokenAuthentication 
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import IntegrityError
+from ..permissions.login_attempt import check_login_attempts,register_failed_attempt,reset_login_attempts
 ##======================================== Register API =================================#
 class RegisterAPIView(APIView):
     permission_classes = [AllowAny]
@@ -22,7 +26,9 @@ class RegisterAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        tokens = token_generate(user, request)
+        # generate tokens but do not record a login event – registration
+        # shouldn't lock the account for later logins
+        tokens = token_generate(user, request, log_history=False)
 
         return Response({
             "success": True,
@@ -51,23 +57,13 @@ class LoginAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        # determine which field is being used
         if username.isdigit():
-            user = User.objects.filter(
-                mobile_number=username,
-                deleted_at__isnull=True
-            ).first()
-
+            user = User.objects.filter(mobile_number=username, deleted_at__isnull=True).first()
         elif "@" in username and "." in username:
-
-            user = User.objects.filter(
-                email_id__iexact=username,
-                deleted_at__isnull=True
-            ).first()
+            user = User.objects.filter(email_id__iexact=username, deleted_at__isnull=True).first()
         else:
-            user = User.objects.filter(
-                name__iexact=username,
-                deleted_at__isnull=True
-            ).first()
+            user = User.objects.filter(name__iexact=username, deleted_at__isnull=True).first()
 
         if not user:
             return Response(
@@ -75,12 +71,34 @@ class LoginAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
+        cutoff = timezone.now() - getattr(self.settings, "SIMPLE_JWT", {}).get("ACCESS_TOKEN_LIFETIME", timedelta(hours=10))
+        if Login_logout_history.objects.filter(user=user,logout_time__isnull=True,login_time__gt=cutoff,).exists():
+            return Response(
+                {"success": False, "message": "This account is already logged in"},
+                status=status.HTTP_200_OK,
+            )
+
+
+        try:
+            check_login_attempts(user)
+        except Exception as e:
+            return Response(
+                {"success": False, "message": str(e)},
+                status=status.HTTP_403_FORBIDDEN
+            )
+    
         if not check_password(password, user.password):
+            register_failed_attempt(user)
             return Response(
                 {"success": False, "message": "Password is incorrect"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
+        
+        reset_login_attempts(user)
 
+        # -----------------------------
+        # GENERATE TOKENS
+        # -----------------------------
         try:
             tokens = token_generate(user, request)
         except IntegrityError:
@@ -91,7 +109,7 @@ class LoginAPIView(APIView):
 
         return Response({
             "success": True,
-            "message": "Login successfully",
+            "message": "Login Successful",
             "data": {
                 "email_id": user.email_id,
                 "mobile_number": user.mobile_number,
@@ -111,6 +129,21 @@ class LogoutAPIView(APIView):
             return Response({"success":False,"message":"refresh_token required"},status=status.HTTP_400_BAD_REQUEST)
         try:
             token = RefreshToken(refresh_token)
+
+            # mark any active session for this user as logged out
+            from django.utils import timezone
+            try:
+                # there is no easy way to derive access token from refresh so
+                # we simply deactivate all open records for the user – this
+                # keeps the `active_login` check from blocking future logins.
+                Login_logout_history.objects.filter(
+                    user=request.user,
+                    logout_time__isnull=True
+                ).update(logout_time=timezone.now(), is_active=False)
+            except Exception:
+                # ignore; best effort
+                pass
+
             token.blacklist()
             return Response({"success":True, "message":"Logout successfully"},status=status.HTTP_200_OK)
         except Exception:

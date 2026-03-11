@@ -4,7 +4,7 @@ class app_data(models.Model):
     user = models.ForeignKey('data.User', on_delete=models.CASCADE, related_name='app_data')
     
     title = models.CharField(max_length=200)
-    url = models.URLField(max_length=500)
+    url = models.URLField(max_length=255)
     description = models.TextField(max_length=255, blank=True, null=True)
     status = models.BooleanField(default=True)
 

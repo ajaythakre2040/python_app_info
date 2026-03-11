@@ -246,7 +246,8 @@
     {
       "name": "App data",
       "protocolProfileBehavior": {
-        "disableBodyPruning": true
+        "disableBodyPruning": true,
+        "disabledSystemHeaders": {}
       },
       "request": {
         "auth": {
@@ -762,6 +763,50 @@
             "api",
             "cron",
             "deactive-domains",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Unblock user",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email_id\":\"shravni1@example.com\",\r\n    \"user_id\":3\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/admin/unblock-user/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "admin",
+            "unblock-user",
             ""
           ]
         }
