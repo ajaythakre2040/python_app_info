@@ -6,6 +6,7 @@ from rest_framework import status
 from ..models import User 
 from django.conf import settings
 from django.utils import timezone 
+from ..models.change_reset_password import Password_Action_Log
 from datetime import timedelta
 from ..models.login_logout_history import Login_logout_history
 from ..serializer import UserRegisterSerializer,ChangePasswordSerializer,ResetPasswordSerializer
@@ -208,13 +209,14 @@ class ChangePasswordAPIView(APIView):
         Password_History.objects.create(user=user, password=user.password)
         user.set_password(new_password)
         user.save()
+        
+        Password_Action_Log.objects.create(user=user,action_by=request.user,action_type="change")
 
         last_ids = Password_History.objects.filter(user=user).order_by('-id')[3:].values_list('id',flat=True)
         Password_History.objects.filter(id__in=last_ids).delete()
 
         return Response({"success":True, "message":"Password changed successfully"},status=status.HTTP_200_OK)
-    
-#==================================Reset password APi====================================#
+##==================================Reset Password ===========================================###
 class ResetPasswordAPIView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
@@ -228,27 +230,42 @@ class ResetPasswordAPIView(APIView):
         new_password = serializer.validated_data.get("new_password")
 
         if not email_id and not mobile_number:
-            return Response({"success":False, "message":"email_id or mobile_number is required"},status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({"success":False, "message":"email_id or mobile_number is required"},status=400)
         if not new_password:
-            return Response({"success":False, "message":"new password is required"},status=status.HTTP_400_BAD_REQUEST)
+            return Response({"success":False, "message":"new password is required"},status=400)
+
+        # ✅ Safe password validation
         try:
             validate_custom_password(new_password)
-        except serializer.ValidationError as e:
+        except Exception as e:
             return Response({"success": False, "message": str(e)}, status=400)
 
+        # ✅ Get user safely
         user = User.objects.filter(Q(email_id=email_id) | Q(mobile_number=mobile_number), is_active=True).first()
         if not user:
             return Response({"success": False, "message": "User not found"}, status=404)
 
+        # ✅ Check password reuse
         if is_password_reused(user, new_password):
             return Response({"success": False, "message": "New password cannot match last 3 passwords"}, status=400)
 
-        Password_History.objects.create(user=user, password=user.password)
+        # ✅ Save old password in history
+        if user.password:
+            Password_History.objects.create(user=user, password=user.password)
+
+        # ✅ Set new password
         user.set_password(new_password)
         user.save()
 
+        # ✅ Log action safely
+        try:
+            Password_Action_Log.objects.create(user=user, action_by=None, action_type="reset")
+        except Exception as e:
+            print("Password_Action_Log create failed:", e)
+
+        # ✅ Keep only last 3 passwords
         last_ids = Password_History.objects.filter(user=user).order_by('-id')[3:].values_list('id', flat=True)
-        Password_History.objects.filter(id__in=last_ids).delete()
+        if last_ids:
+            Password_History.objects.filter(id__in=last_ids).delete()
 
         return Response({"success": True, "message": "Password reset successfully"}, status=200)
