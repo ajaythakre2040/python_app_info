@@ -4,7 +4,7 @@ MAX_LOGIN_ATTEMPTS = 3
 
 def check_login_attempts(user):
     if user.login_attempts >= MAX_LOGIN_ATTEMPTS or not user.is_active:
-        raise ValidationError("Too many login attempts. User is blocked. Please contact admin.")
+        raise ValidationError("Too many login attempts User is blocked.")
 
 def register_failed_attempt(user):
     if not user.is_active:
