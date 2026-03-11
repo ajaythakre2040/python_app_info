@@ -48,7 +48,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"username\":\"Shyam Khesav\",\r\n    \"password\":\"Pass@1234\"\r\n}\r\n\r\n",
+          "raw": "{\r\n    \"username\":\"3182224087\",\r\n    \"password\":\"Pass@1234\"\r\n}\r\n\r\n",
           "options": {
             "raw": {
               "language": "json"
@@ -129,7 +129,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\"mobile_number\":\"919876543210\",\r\n\"new_password\":\"Rahul@12345\"}",
+          "raw": "// {\r\n//     \"mobile_number\":\"919876543210\",\r\n//     \"new_password\":\"Rahul@12345\" \r\n// }\r\n\r\n{\r\n    \"email_id\":\"aish1@example.com\",\r\n    \"new_password\": \"Aish@12345\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -173,7 +173,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MjUzMzk4OSwiaWF0IjoxNzcxOTI5MTg5LCJqdGkiOiIzZDY0NWJiMDFmY2E0OGNjYTVlYTAyZTk1OGUxYWI0NSIsInVzZXJfaWQiOiI0In0.7VcfQDS0jiB-ciaL9Ya9gtohBWAOMw9eKonQljVYjeg\"\r\n}",
+          "raw": "{\r\n        \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MzgxMTA4MiwiaWF0IjoxNzczMjA2MjgyLCJqdGkiOiI2YmZiMDc1M2E2OWE0YWY2YTU5NDEwNjlkYWJmNGJlZiIsInVzZXJfaWQiOiIxMSJ9.ygZAqWV4cQXQjLRF_Ofq1CZ6I5tumY5JAdGn7ed03fs\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -217,7 +217,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "// {\r\n//     \"title\": \"The story\",\r\n//     \"url\": \"https://example.com\",\r\n//     \"description\": \"This is data\"\r\n// }\r\n\r\n{\r\n    \"title\": \"app data\",\r\n    \"url\":\"http://127.0.0.1:8000/api/app-data/\",\r\n    \"description\":\"...\",\r\n    \"status\":\"True\"\r\n}",
+          "raw": "// {\r\n//     \"title\": \"The story\",\r\n//     \"url\": \"https://example.com\",\r\n//     \"description\": \"This is data\"\r\n// }\r\n\r\n{\r\n    \"title\": \" AppProject\",\r\n    \"url\":\"https://www.djangoproject.com\",\r\n    \"description\":\"...\",\r\n    \"status\":\"True\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -313,7 +313,7 @@
           "raw": ""
         },
         "url": {
-          "raw": "http://127.0.0.1:8000/api/app-data/2/",
+          "raw": "http://127.0.0.1:8000/api/app-data/4/",
           "protocol": "http",
           "host": [
             "127",
@@ -325,7 +325,7 @@
           "path": [
             "api",
             "app-data",
-            "2",
+            "4",
             ""
           ]
         }
@@ -396,7 +396,7 @@
           "raw": ""
         },
         "url": {
-          "raw": "http://127.0.0.1:8000/api/app-data/1/",
+          "raw": "http://127.0.0.1:8000/api/app-data/6/",
           "protocol": "http",
           "host": [
             "127",
@@ -408,7 +408,7 @@
           "path": [
             "api",
             "app-data",
-            "1",
+            "6",
             ""
           ]
         }
@@ -556,7 +556,13 @@
           ]
         },
         "method": "GET",
-        "header": [],
+        "header": [
+          {
+            "key": "User-Agent",
+            "value": "po",
+            "type": "text"
+          }
+        ],
         "body": {
           "mode": "raw",
           "raw": "",
@@ -645,7 +651,7 @@
         "method": "DELETE",
         "header": [],
         "url": {
-          "raw": "http://127.0.0.1:8000/api/users/2/",
+          "raw": "http://127.0.0.1:8000/api/users/5/",
           "protocol": "http",
           "host": [
             "127",
@@ -657,7 +663,7 @@
           "path": [
             "api",
             "users",
-            "2",
+            "5",
             ""
           ]
         }
@@ -701,6 +707,9 @@
     },
     {
       "name": "domain cron active",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
       "request": {
         "auth": {
           "type": "bearer",
@@ -714,6 +723,15 @@
         },
         "method": "GET",
         "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
           "raw": "http://127.0.0.1:8000/api/cron/active-domains/",
           "protocol": "http",
@@ -786,7 +804,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"email_id\":\"shravni1@example.com\",\r\n    \"user_id\":3\r\n}",
+          "raw": "{\r\n    \"name\":\"Shyam khesav\",\r\n    \"mobile_number\":\"6787594867\"\r\n}\r\n",
           "options": {
             "raw": {
               "language": "json"
