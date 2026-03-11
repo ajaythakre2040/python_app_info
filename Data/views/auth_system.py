@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from ..models import User 
+from django.conf import settings
 from django.utils import timezone 
 from datetime import timedelta
 from ..models.login_logout_history import Login_logout_history
@@ -43,11 +44,13 @@ class RegisterAPIView(APIView):
         }, status=status.HTTP_201_CREATED)
 
 #================================================= Login API =========================================#
+
 class LoginAPIView(APIView):
     permission_classes = []
     authentication_classes = []
 
     def post(self, request):
+
         username = request.data.get("username")
         password = request.data.get("password")
 
@@ -57,13 +60,26 @@ class LoginAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # determine which field is being used
+        # -----------------------------
+        # FIND USER
+        # -----------------------------
         if username.isdigit():
-            user = User.objects.filter(mobile_number=username, deleted_at__isnull=True).first()
+            user = User.objects.filter(
+                mobile_number=username,
+                deleted_at__isnull=True
+            ).first()
+
         elif "@" in username and "." in username:
-            user = User.objects.filter(email_id__iexact=username, deleted_at__isnull=True).first()
+            user = User.objects.filter(
+                email_id__iexact=username,
+                deleted_at__isnull=True
+            ).first()
+
         else:
-            user = User.objects.filter(name__iexact=username, deleted_at__isnull=True).first()
+            user = User.objects.filter(
+                name__iexact=username,
+                deleted_at__isnull=True
+            ).first()
 
         if not user:
             return Response(
@@ -71,14 +87,9 @@ class LoginAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        cutoff = timezone.now() - getattr(self.settings, "SIMPLE_JWT", {}).get("ACCESS_TOKEN_LIFETIME", timedelta(hours=10))
-        if Login_logout_history.objects.filter(user=user,logout_time__isnull=True,login_time__gt=cutoff,).exists():
-            return Response(
-                {"success": False, "message": "This account is already logged in"},
-                status=status.HTTP_200_OK,
-            )
-
-
+        # -----------------------------
+        # LOGIN ATTEMPT CHECK
+        # -----------------------------
         try:
             check_login_attempts(user)
         except Exception as e:
@@ -86,15 +97,39 @@ class LoginAPIView(APIView):
                 {"success": False, "message": str(e)},
                 status=status.HTTP_403_FORBIDDEN
             )
-    
+
+        # -----------------------------
+        # PASSWORD CHECK
+        # -----------------------------
         if not check_password(password, user.password):
+
             register_failed_attempt(user)
+
             return Response(
                 {"success": False, "message": "Password is incorrect"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-        
+
         reset_login_attempts(user)
+
+        # -----------------------------
+        # ALREADY LOGIN CHECK
+        # -----------------------------
+        cutoff = timezone.now() - settings.SIMPLE_JWT.get(
+            "ACCESS_TOKEN_LIFETIME", timedelta(hours=10)
+        )
+
+        active_session = Login_logout_history.objects.filter(
+            user=user,
+            logout_time__isnull=True,
+            login_time__gt=cutoff
+        ).first()
+
+        if active_session:
+            return Response(
+                {"success": False, "message": "User already logged in on another device"},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         # -----------------------------
         # GENERATE TOKENS
@@ -107,17 +142,29 @@ class LoginAPIView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-        return Response({
-            "success": True,
-            "message": "Login Successful",
-            "data": {
-                "email_id": user.email_id,
-                "mobile_number": user.mobile_number,
-                "name": user.name,
-                "access_token": tokens["access"],
-                "refresh_token": tokens["refresh"]
-            }
-        }, status=status.HTTP_200_OK)
+        # -----------------------------
+        # LOGIN HISTORY SAVE
+        # -----------------------------
+        Login_logout_history.objects.create(
+            user=user,
+            login_time=timezone.now(),
+            ip_address=request.META.get("REMOTE_ADDR")
+        )
+
+        return Response(
+            {
+                "success": True,
+                "message": "Login Successful",
+                "data": {
+                    "email_id": user.email_id,
+                    "mobile_number": user.mobile_number,
+                    "name": user.name,
+                    "access_token": tokens["access"],
+                    "refresh_token": tokens["refresh"]
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
 #=================================================Logout API========================================================#
 class LogoutAPIView(APIView):
     permission_classes=[IsAuthenticated]
