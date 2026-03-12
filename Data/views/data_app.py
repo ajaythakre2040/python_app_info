@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+
 from ..models import app_data, domain_logs
 from ..serializer import AppDataSerializer
 from ..permissions.authentication import LoginTokenAuthentication
@@ -11,125 +12,142 @@ from ..utils.pagination import CustomPagination
 
 
 class AppDataAPIView(APIView):
+
     authentication_classes = [LoginTokenAuthentication]
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
+
+    # ========================================= GET =========================================
     def get(self, request, id=None):
         try:
-            # ================= 1. GET BY ID (Ek Domain ke Saare Logs) =================
+
+            # ================= GET BY ID =================
             if id:
-                # Pehle check karein ki wo domain exist karta hai ya nahi
+
                 domain_obj = app_data.objects.filter(
-                    id=id, deleted_at__isnull=True
+                    id=id,
+                    deleted_at__isnull=True
                 ).first()
 
                 if not domain_obj:
                     return Response(
-                        {"message": "Domain not found"},
-                        status=status.HTTP_404_NOT_FOUND,
+                        {"success": False, "message": "Domain not found"},
+                        status=status.HTTP_404_NOT_FOUND
                     )
 
-                # Is specific domain ke saare logs nikaalein (Maximum 5 honge as per logic)
                 logs_queryset = domain_logs.objects.filter(
                     app_data=domain_obj
                 ).order_by("-created_at")
 
-                # Serialize Domain basic info
                 domain_info = AppDataSerializer(domain_obj).data
 
-                # Logs ko format karein
-                all_logs = []
+                logs = []
+
                 for log in logs_queryset:
-                    all_logs.append(
-                        {
-                            "id": log.id,
-                            "url": log.url,
-                            "status": log.status,
-                            "json_result": log.json_result,
-                            "created_at": log.created_at,
-                        }
-                    )
+                    logs.append({
+                        "id": log.id,
+                        "url": log.url,
+                        "status": log.status,
+                        "json_result": log.json_result,
+                        "created_at": log.created_at
+                    })
 
                 return Response(
                     {
                         "success": True,
                         "domain_details": domain_info,
-                        "history_logs": all_logs,
+                        "history_logs": logs
                     },
-                    status=status.HTTP_200_OK,
+                    status=status.HTTP_200_OK
                 )
 
-            # ================= 2. GET ALL (Sabhi Domains + Unka Latest Log) =================
-            else:
-                queryset = (app_data.objects.filter(deleted_at__isnull=True).order_by("user", "-created_at"))
 
-                # Pagination apply karein
-                paginator = self.pagination_class()
-                page = paginator.paginate_queryset(queryset, request)
+            # ================= GET ALL =================
+            queryset = app_data.objects.filter(
+                deleted_at__isnull=True
+            ).order_by("user", "-created_at")
 
-                result = []
-                for obj in page:
-                    data = AppDataSerializer(obj).data
+            paginator = self.pagination_class()
+            page = paginator.paginate_queryset(queryset, request)
 
-                    # Har domain ka sirf sabse LATEST log nikaalein
-                    latest_log = (
-                        domain_logs.objects.filter(app_data=obj)
-                        .order_by("-created_at")
-                        .first()
-                    )
+            result = []
 
-                    data["latest_status"] = (
-                        {
-                            "status": latest_log.status,
-                            "http_status": (
-                                latest_log.json_result.get("http_status")
-                                if latest_log
-                                else None
-                            ),
-                            "last_checked": (
-                                latest_log.created_at if latest_log else None
-                            ),
-                        }
-                        if latest_log
-                        else None
-                    )
+            for obj in page:
 
-                    result.append(data)
+                data = AppDataSerializer(obj).data
 
-                return paginator.get_paginated_response(
-                    {"success": True, "all_domains": result}
+                latest_log = (
+                    domain_logs.objects
+                    .filter(app_data=obj)
+                    .order_by("-created_at")
+                    .first()
                 )
+
+                data["latest_status"] = (
+                    {
+                        "status": latest_log.status,
+                        "http_status": (
+                            latest_log.json_result.get("http_status")
+                            if latest_log and latest_log.json_result
+                            else None
+                        ),
+                        "last_checked": latest_log.created_at
+                    }
+                    if latest_log else None
+                )
+
+                result.append(data)
+
+            return paginator.get_paginated_response({
+                "success": True,
+                "all_domains": result
+            })
+
 
         except Exception as e:
+
             return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"success": False, "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
 
     # ========================================= POST =========================================
     def post(self, request):
-        try:
-            serializer = AppDataSerializer(data=request.data)
 
-            if serializer.is_valid():
-                serializer.save(
-                    user=request.user,
-                    created_by=request.user
-                )
-                return Response(
-                    {"success": True, "data": serializer.data},
-                    status=status.HTTP_201_CREATED
-                )
+        serializer = AppDataSerializer(data=request.data)
 
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
 
-        except Exception:
-            # allow global exception handler to process
-            raise
+            serializer.save(
+                user=request.user,
+                created_by=request.user
+            )
 
-    # ========================================= PATCH (Update by App ID) =========================================
+            return Response(
+                {
+                    "success": True,
+                    "message": "Domain created successfully",
+                    "data": serializer.data
+                },
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(
+            {
+                "success": False,
+                "errors": serializer.errors
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+    # ========================================= PATCH =========================================
     def patch(self, request, id=None):
+
         try:
+
             instance = get_object_or_404(
                 app_data,
                 id=id,
@@ -143,20 +161,42 @@ class AppDataAPIView(APIView):
             )
 
             if serializer.is_valid():
+
                 serializer.save(updated_by=request.user)
+
                 return Response(
-                    {"success": True, "data": serializer.data},
+                    {
+                        "success": True,
+                        "message": "Updated successfully",
+                        "data": serializer.data
+                    },
                     status=status.HTTP_200_OK
                 )
 
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {
+                    "success": False,
+                    "errors": serializer.errors
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        except Exception:
-            raise
+        except Exception as e:
 
-    # ========================================= DELETE (Soft Delete) =========================================
+            return Response(
+                {
+                    "success": False,
+                    "error": str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+    # ========================================= DELETE =========================================
     def delete(self, request, id=None):
+
         try:
+
             instance = get_object_or_404(
                 app_data,
                 id=id,
@@ -168,9 +208,19 @@ class AppDataAPIView(APIView):
             instance.save()
 
             return Response(
-                {"success": True, "message": "Deleted successfully"},
+                {
+                    "success": True,
+                    "message": "Deleted successfully"
+                },
                 status=status.HTTP_200_OK
             )
 
-        except Exception:
-            raise
+        except Exception as e:
+
+            return Response(
+                {
+                    "success": False,
+                    "error": str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

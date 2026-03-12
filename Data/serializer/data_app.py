@@ -14,16 +14,38 @@ class AppDataSerializer(serializers.ModelSerializer):
         model = app_data
         fields="__all__"
         read_only_fields = ["id","created_at","updated_at","deleted_at","user",]
+
+
     def validate_url(self, value):
-        if app_data.objects.filter(url=value).exists():
+        qs = app_data.objects.filter(url=value)
+
+        if self.instance:
+            qs = qs.exclude(id=self.instance.id)
+
+        if qs.exists():
             raise serializers.ValidationError(
-                "A record with this URL already exists. Please use a different URL."
+                "A record with this URL already exists."
             )
         return value
-
+    
+    # create method
     def create(self, validated_data):
         try:
-            return super().create(validated_data)
+            return app_data.objects.create(**validated_data)
+        except IntegrityError:
+            raise serializers.ValidationError({
+                "url": "This URL already exists."
+            })
+
+    # update method
+    def update(self, instance, validated_data):
+        try:
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+
+            instance.save()
+            return instance
+
         except IntegrityError:
             raise serializers.ValidationError({
                 "url": "This URL already exists."
