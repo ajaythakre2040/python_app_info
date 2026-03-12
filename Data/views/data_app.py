@@ -3,13 +3,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-
 from ..models import app_data, domain_logs
 from ..serializer import AppDataSerializer
 from ..permissions.authentication import LoginTokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from ..utils.pagination import CustomPagination
-
 
 class AppDataAPIView(APIView):
 
