@@ -22,4 +22,5 @@ class UnblockUser(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return self.name
+        return str(self.user)
+        
