@@ -6,7 +6,7 @@ class UnblockUser(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="unblock_user")
 
     email_id = models.EmailField(null=True, blank=True)
-    mobile_number = models.CharField(max_length=15, null=True, blank=True)
+    mobile_number = models.CharField(max_length=10, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True,blank=True,related_name="unblock_created_by")

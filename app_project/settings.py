@@ -77,18 +77,25 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
+
+    # custom handler is located inside the `data` app
+    'EXCEPTION_HANDLER': 'data.utils.custom_exception.custom_exception_handler',
 
     # 'DEFAULT_RENDERER_CLASSES': [
     #     'rest_framework.renderers.JSONRenderer',
     # ],
+
     # 'DEFAULT_THROTTLE_CLASSES': [
     #     'rest_framework.throttling.UserRateThrottle',
     # ],
+
     # 'DEFAULT_THROTTLE_RATES': {
     #     'user': '1000/second',
     # },

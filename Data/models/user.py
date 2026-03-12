@@ -3,7 +3,7 @@ from django.db import models
 from ..managers import CustomUserManager
 
 class User(AbstractBaseUser, PermissionsMixin):
-    name= models.CharField(max_length=100)
+    name= models.CharField(max_length=255)
     mobile_number =models.CharField(max_length=10,unique=True,null=True,blank=True)
     email_id = models.EmailField(unique=True,null=True,blank=True)
 

@@ -62,7 +62,7 @@ class AppDataAPIView(APIView):
 
             # ================= 2. GET ALL (Sabhi Domains + Unka Latest Log) =================
             else:
-                queryset = (app_data.objects.filter(deleted_at__isnull=True).order_by("user", "-created_at").distinct("user"))
+                queryset = (app_data.objects.filter(deleted_at__isnull=True).order_by("user", "-created_at"))
 
                 # Pagination apply karein
                 paginator = self.pagination_class()
@@ -123,11 +123,9 @@ class AppDataAPIView(APIView):
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        except Exception as e:
-            return Response(
-                {"error": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        except Exception:
+            # allow global exception handler to process
+            raise
 
     # ========================================= PATCH (Update by App ID) =========================================
     def patch(self, request, id=None):
@@ -153,11 +151,8 @@ class AppDataAPIView(APIView):
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        except Exception as e:
-            return Response(
-                {"error": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        except Exception:
+            raise
 
     # ========================================= DELETE (Soft Delete) =========================================
     def delete(self, request, id=None):
@@ -177,8 +172,5 @@ class AppDataAPIView(APIView):
                 status=status.HTTP_200_OK
             )
 
-        except Exception as e:
-            return Response(
-                {"error": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        except Exception:
+            raise

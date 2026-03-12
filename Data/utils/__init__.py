@@ -4,3 +4,4 @@ from ..utils.token_generate import token_generate
 from ..utils.sanitize import no_html_validator
 from ..utils.status import update_user_status
 from ..utils.email import check_email
+from ..utils.custom_exception import custom_exception_handler

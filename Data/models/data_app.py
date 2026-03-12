@@ -3,8 +3,8 @@ from django.db import models
 class app_data(models.Model):
     user = models.ForeignKey('data.User', on_delete=models.CASCADE, related_name='app_data')
     
-    title = models.CharField(max_length=200)
-    url = models.URLField(max_length=255)
+    title = models.CharField(max_length=255)
+    url = models.URLField(max_length=255,unique=True)
     description = models.TextField(max_length=255, blank=True, null=True)
     status = models.BooleanField(default=True)
 
