@@ -26,9 +26,9 @@ class LoginTokenAuthentication(BaseAuthentication):
         try:
             validated_token = jwt_auth.get_validated_token(raw_token)
             user = jwt_auth.get_user(validated_token)
-        except Exception as e:
-            raise AuthenticationFailed(f"Invalid or expired token: {str(e)}")
-
+        except Exception:
+            raise AuthenticationFailed("Authentication token is invalid or has expired.")
+     
         # Ensure user is active
         if not user.is_active:
             raise AuthenticationFailed("User account is inactive. Please contact admin.")
