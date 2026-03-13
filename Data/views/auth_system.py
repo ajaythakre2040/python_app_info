@@ -179,7 +179,6 @@ class LogoutAPIView(APIView):
                     logout_time__isnull=True
                 ).update(logout_time=timezone.now(), is_active=False)
             except Exception:
-                # ignore; best effort
                 pass
 
             token.blacklist()
@@ -190,7 +189,7 @@ class LogoutAPIView(APIView):
 #==================================Change Password API===============================================#
 class ChangePasswordAPIView(APIView):
     permission_classes = [IsAuthenticated]
-    authentication_classes=[LoginTokenAuthentication]
+    authentication_classes = [LoginTokenAuthentication]
 
     def post(self, request):
         serializer = ChangePasswordSerializer(data=request.data)
@@ -200,22 +199,48 @@ class ChangePasswordAPIView(APIView):
         old_password = serializer.validated_data["old_password"]
         new_password = serializer.validated_data["new_password"]
 
+        # Validate old password
         if not user.check_password(old_password):
-            return Response({"success": False, "message":"old password is incorrect"},status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {"success": False, "message": "Old password is incorrect"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate new password format
+        try:
+            validate_custom_password(new_password)
+        except Exception as e:
+            return Response({"success": False, "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Prevent using same password as current
+        if user.check_password(new_password):
+            return Response(
+                {"success": False, "message": "New password cannot be same as current password"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check password reuse (last 3 passwords)
         if is_password_reused(user, new_password):
-            return Response({"success":False,"message":"new password cannot be same as last 3 passwords"},status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {"success": False, "message": "New password cannot be same as last 3 passwords"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Save current password to history
         Password_History.objects.create(user=user, password=user.password)
+
+        # Update user's password
         user.set_password(new_password)
         user.save()
-        
-        Password_Action_Log.objects.create(user=user,action_by=request.user,action_type="change")
 
-        last_ids = Password_History.objects.filter(user=user).order_by('-id')[3:].values_list('id',flat=True)
-        Password_History.objects.filter(id__in=last_ids).delete()
+        # Log the password change
+        Password_Action_Log.objects.create(user=user, action_by=request.user, action_type="change")
 
-        return Response({"success":True, "message":"Password changed successfully"},status=status.HTTP_200_OK)
+        # Keep only last 3 passwords
+        old_history_ids = Password_History.objects.filter(user=user).order_by('-id')[3:].values_list('id', flat=True)
+        Password_History.objects.filter(id__in=old_history_ids).delete()
+
+        return Response({"success": True, "message": "Password changed successfully"}, status=status.HTTP_200_OK)
 ##==================================Reset Password ===========================================###
 class ResetPasswordAPIView(APIView):
     permission_classes = [AllowAny]
