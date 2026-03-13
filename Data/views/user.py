@@ -1,40 +1,64 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.utils import timezone
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from rest_framework.permissions import IsAuthenticated,AllowAny
+from django.utils import timezone
 from django.contrib.auth.hashers import make_password
 from ..models import User
+from ..models.password_history import Password_History
 from ..serializer.user import UserSerializer
+from ..permissions.authentication import LoginTokenAuthentication
+from ..utils.status import update_user_status
 from ..utils.pagination import CustomPagination
 from ..utils.password import validate_custom_password, is_password_reused
-from ..permissions.authentication import LoginTokenAuthentication
-from ..models.password_history import Password_History
 
 class UserAPIView(APIView):
     authentication_classes = [LoginTokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    # ================= GET / GET BY ID =================
+    # ================= GET / GET BY ID =================#
     def get(self, request, id=None):
         try:
+            queryset = User.objects.filter(deleted_at__isnull=True)
+
+            # Update all users' status dynamically
+            for user in queryset:
+                update_user_status(user)
+
             if id:
-                user = get_object_or_404(User, id=id, deleted_at__isnull=True, is_active=True)
+                # Return single user by ID
+                user = get_object_or_404(queryset, id=id)
                 serializer = UserSerializer(user)
                 return Response({"success": True, "data": serializer.data}, status=status.HTTP_200_OK)
 
-            queryset = User.objects.filter(deleted_at__isnull=True, is_active=True).order_by("-created_at")
+            # Paginate all users (active + inactive)
             paginator = CustomPagination()
-            paginated_queryset = paginator.paginate_queryset(queryset, request, view=self)
+            paginated_queryset = paginator.paginate_queryset(queryset.order_by("-created_at"), request, view=self)
             serializer = UserSerializer(paginated_queryset, many=True)
-            return paginator.get_paginated_response(serializer.data)
+
+            # Count active and inactive users
+            active_count = queryset.filter(is_active=True).count()
+            inactive_count = queryset.filter(is_active=False).count()
+
+            response_data = {
+                "total_records": queryset.count(),
+                "total_pages": paginator.page.paginator.num_pages,
+                "current_page": paginator.page.number,
+                "next": paginator.get_next_link(),
+                "previous": paginator.get_previous_link(),
+                "active_count": active_count,
+                "inactive_count": inactive_count,
+                "results": serializer.data
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({"error": f"Something went wrong: {str(e)}"},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    # ================= POST CREATE =================
+    # ================= POST CREATE =================#
     def post(self, request):
         data = request.data.copy()
         password = data.get("password")
@@ -62,9 +86,9 @@ class UserAPIView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # ================= PATCH UPDATE =================
+    # ================= PATCH UPDATE =================#
     def patch(self, request, id):
-        user = get_object_or_404(User, id=id, deleted_at__isnull=True, is_active=True)
+        user = get_object_or_404(User, id=id, deleted_at__isnull=True)
         data = request.data.copy()
         password = data.get("password")
 
@@ -90,11 +114,11 @@ class UserAPIView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # ================= DELETE USER =================
+    # ================= DELETE USER =================#
     def delete(self, request, id):
         user = get_object_or_404(User, id=id, deleted_at__isnull=True, is_active=True)
         user.deleted_at = timezone.now()
-        user.deleted_by = request.user  
+        user.deleted_by = request.user
         user.is_active = False
         user.updated_by = request.user
         user.updated_at = timezone.now()
