@@ -1,37 +1,114 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Django Dashboard</title>
+<title>Smart Dashboard</title>
 
 <style>
-body{
-font-family: Arial;
-background:#f5f5f5;
-text-align:center;
-padding:50px;
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Poppins:wght@400;500;600&display=swap');
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
 }
 
-.card{
-background:white;
-padding:40px;
-border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
-width:400px;
-margin:auto;
+.card {
+    background: linear-gradient(145deg, #ffffff, #f0f4f8);
+    padding: 50px 40px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    width: 380px;
+    max-width: 90%;
+    text-align: center;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    position: relative;
+    overflow: hidden;
 }
 
-h1{
-color:#2c3e50;
+.card::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(52,152,219,0.2) 0%, transparent 70%);
+    top: -50%;
+    left: -50%;
+    transform: rotate(45deg);
+    transition: all 0.5s ease;
+}
+
+.card:hover::before {
+    transform: rotate(90deg);
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 45px rgba(0,0,0,0.15);
+}
+
+h1 {
+    color: #2c3e50;
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+h1 span {
+    display: inline-block;
+    animation: bounce 1.2s infinite alternate;
+}
+
+@keyframes bounce {
+    0% { transform: translateY(0);}
+    100% { transform: translateY(-10px);}
+}
+
+p {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.15em;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(90deg, #34495e, #3498db);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.button {
+    display: inline-block;
+    padding: 14px 30px;
+    background: #3498db;
+    color: white;
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 12px;
+    transition: background 0.3s, transform 0.3s;
+    position: relative;
+    z-index: 1;
+}
+
+.button:hover {
+    background: #2980b9;
+    transform: translateY(-3px);
 }
 </style>
-
 </head>
 
 <body>
 
 <div class="card">
-<h1>🚀PROJECT</h1>
-<p>Welcome to Django Project🚀</p>
+    <h1>🚀 <span>WELCOME</span></h1>
+
+    <p>The project setup is in progress.</p>
+
+    <a href="#" class="button">Get Started</a>
 </div>
 
 </body>
