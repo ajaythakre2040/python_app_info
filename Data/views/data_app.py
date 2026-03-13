@@ -135,7 +135,7 @@ class AppDataAPIView(APIView):
         return Response(
             {
                 "success": False,
-                "errors": serializer.errors
+                "message": serializer.errors
             },
             status=status.HTTP_400_BAD_REQUEST
         )
@@ -165,8 +165,7 @@ class AppDataAPIView(APIView):
                 return Response(
                     {
                         "success": True,
-                        "message": "Updated successfully",
-                        "data": serializer.data
+                        "message": "Updated successfully"
                     },
                     status=status.HTTP_200_OK
                 )
@@ -174,7 +173,7 @@ class AppDataAPIView(APIView):
             return Response(
                 {
                     "success": False,
-                    "errors": serializer.errors
+                    "message": serializer.errors
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )

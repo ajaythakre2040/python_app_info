@@ -85,7 +85,7 @@ class UserAPIView(APIView):
             else:
                 serializer.save(updated_by=request.user)
 
-            return Response({"success": True, "message": "User updated successfully", "data": serializer.data},
+            return Response({"success": True, "message": "User updated successfully"},
                             status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

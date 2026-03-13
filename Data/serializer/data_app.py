@@ -6,9 +6,9 @@ from ..utils.sanitize import no_html_validator
 SANITIZE_FIELDS = ['title','description','url']
 
 class AppDataSerializer(serializers.ModelSerializer):
-    title = serializers.CharField(validators=[no_html_validator])
-    description = serializers.CharField(required = False, allow_blank = True,validators=[no_html_validator])
-    url = serializers.CharField(validators=[no_html_validator])
+    title = serializers.CharField(max_length=255, validators=[no_html_validator])
+    description = serializers.CharField(max_length=255, required = False, allow_blank = True,validators=[no_html_validator])
+    url = serializers.CharField(max_length=255, validators=[no_html_validator])
 
     class Meta:
         model = app_data
@@ -17,7 +17,7 @@ class AppDataSerializer(serializers.ModelSerializer):
 
 
     def validate_url(self, value):
-        qs = app_data.objects.filter(url=value)
+        qs = app_data.objects.filter(url=value, deleted_at__isnull=True)
 
         if self.instance:
             qs = qs.exclude(id=self.instance.id)
