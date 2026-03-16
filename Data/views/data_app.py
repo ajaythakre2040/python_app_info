@@ -15,7 +15,6 @@ class AppDataAPIView(APIView):
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
-
     # ========================================= GET =========================================
     def get(self, request, id=None):
         try:

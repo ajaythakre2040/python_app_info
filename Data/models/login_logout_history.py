@@ -17,6 +17,8 @@ class Login_logout_history(models.Model):
     expires_at = models.DateTimeField()
     is_active = models.BooleanField(default=True)
 
+    concurrent_info = models.JSONField(null=True, blank=True)
+
     def __str__(self):
         return f"{self.user}-{self.login_time}"
     

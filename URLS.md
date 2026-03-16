@@ -7,6 +7,7 @@ http://127.0.0.1:8000/
 POST      /api/register/user/                        →for register
 POST     /api/login/user/                            →for login
 POST    /api/logout/user/                            →for logout
+POST    /api/force-logout/user/                      →for Force logout
 POST   /api/change-password/user/                    →for change password
 POST  /api/reset-password/user/                      →for reset password
 

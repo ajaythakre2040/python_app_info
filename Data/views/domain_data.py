@@ -25,13 +25,10 @@ class ActiveUserListAPIView(ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        users = User.objects.filter(deleted_at__isnull=True)
-        for user in users:
-            update_user_status(user)
+        # Fetch only already active users
         return User.objects.filter(is_active=True, deleted_at__isnull=True).order_by('created_at')
 
-
-#==============================Deactive User History==========================#
+#=============================Deactive User History======================#
 class DeactiveUserListAPIView(ListAPIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [LoginTokenAuthentication]
@@ -39,7 +36,5 @@ class DeactiveUserListAPIView(ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        users = User.objects.filter(deleted_at__isnull=True)
-        for user in users:
-            update_user_status(user)
+        # Fetch only already inactive users
         return User.objects.filter(is_active=False, deleted_at__isnull=True).order_by('created_at')

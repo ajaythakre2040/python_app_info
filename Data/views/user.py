@@ -9,7 +9,7 @@ from ..models import User
 from ..models.password_history import Password_History
 from ..serializer.user import UserSerializer
 from ..permissions.authentication import LoginTokenAuthentication
-from ..utils.status import update_user_status
+# from ..utils.status import update_user_status
 from ..utils.pagination import CustomPagination
 from ..utils.password import validate_custom_password, is_password_reused
 
@@ -20,11 +20,11 @@ class UserAPIView(APIView):
     # ================= GET / GET BY ID =================#
     def get(self, request, id=None):
         try:
-            queryset = User.objects.filter(deleted_at__isnull=True)
+            queryset = User.objects.filter(deleted_at__isnull=True).order_by("-created_at")
 
-            # Update all users' status dynamically
-            for user in queryset:
-                update_user_status(user)
+            # # Update all users' status dynamically
+            # for user in queryset:
+            #     update_user_status(user)
 
             if id:
                 # Return single user by ID

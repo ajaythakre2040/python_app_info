@@ -9,6 +9,7 @@ from django.utils import timezone
 from ..models.change_reset_password import Password_Action_Log
 from datetime import timedelta
 from ..models.login_logout_history import Login_logout_history
+from django.contrib.sessions.models import Session
 from ..serializer import UserRegisterSerializer,ChangePasswordSerializer,ResetPasswordSerializer
 from ..utils.password import is_password_reused,validate_custom_password
 from ..utils.token_generate import token_generate
@@ -35,13 +36,6 @@ class RegisterAPIView(APIView):
         return Response({
             "success": True,
             "message": "User registered successfully",
-            "data": {
-                "email_id": user.email_id,
-                "mobile_number": user.mobile_number,
-                "name": user.name,
-                "access_token": tokens["access"],
-                "refresh_token": tokens["refresh"]
-            }
         }, status=status.HTTP_201_CREATED)
 
 #================================================= Login API =========================================#
@@ -149,9 +143,6 @@ class LoginAPIView(APIView):
                 "success": True,
                 "message": "Login Successful",
                 "data": {
-                    "email_id": user.email_id,
-                    "mobile_number": user.mobile_number,
-                    "name": user.name,
                     "access_token": tokens["access"],
                     "refresh_token": tokens["refresh"]
                 },
@@ -169,9 +160,6 @@ class LogoutAPIView(APIView):
             return Response({"success":False,"message":"refresh_token required"},status=status.HTTP_400_BAD_REQUEST)
         try:
             token = RefreshToken(refresh_token)
-
-            # mark any active session for this user as logged out
-            from django.utils import timezone
             try:
                 
                 Login_logout_history.objects.filter(
@@ -185,7 +173,69 @@ class LogoutAPIView(APIView):
             return Response({"success":True, "message":"Logout successfully"},status=status.HTTP_200_OK)
         except Exception:
             return Response({"success":False , "message":"Invalid refresh token"},status=status.HTTP_400_BAD_REQUEST)
-        
+
+
+#================================== Force Logout API =========================================#
+class ForceLogoutAPIView(APIView):
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+
+        username = request.data.get("username")
+
+        if not username:
+            return Response(
+                {"success": False, "message": "username required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # username se user find karo
+        user = User.objects.filter(name__iexact=username).first()
+
+        if not user:
+            return Response(
+                {"success": False, "message": "User not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # user_id se active sessions find karo
+        sessions = Login_logout_history.objects.filter(
+            user_id=user.id,
+            is_active=True
+        )
+
+        if not sessions.exists():
+            return Response({
+                "success": False,
+                "message": "No active session found"
+            })
+
+        for session in sessions:
+
+            # token blacklist
+            try:
+                token = RefreshToken(session.token_hash)
+                token.blacklist()
+            except Exception:
+                pass
+
+            session.logout_time = timezone.now()
+            session.is_active = False
+            session.concurrent_info = {
+                "type": "force_logout",
+                "ip_address": request.META.get("REMOTE_ADDR"),
+                "user_agent": request.META.get("HTTP_USER_AGENT"),
+                "time": str(timezone.now())
+            }
+
+            session.save()
+
+        return Response({
+            "success": True,
+            "message": "Previous device logged out successfully"
+        })
 #==================================Change Password API===============================================#
 class ChangePasswordAPIView(APIView):
     permission_classes = [IsAuthenticated]
