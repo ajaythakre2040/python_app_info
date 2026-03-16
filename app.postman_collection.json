@@ -92,7 +92,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\"old_password\":\"Pass@1234\",\r\n\"new_password\":\"Keina@1234\"}",
+          "raw": "{\"old_password\":\"Pass@1234\",\r\n\"new_password\":\"Pass@1234\"}",
           "options": {
             "raw": {
               "language": "json"
@@ -825,6 +825,40 @@
             "api",
             "admin",
             "unblock-user",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Forced logout",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\":\"Super Admin\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/force-logout/user/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "force-logout",
+            "user",
             ""
           ]
         }
