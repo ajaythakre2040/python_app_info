@@ -34,8 +34,8 @@ class UserAPIView(APIView):
 
             # Paginate all users (active + inactive)
             paginator = CustomPagination()
-            paginated_queryset = paginator.paginate_queryset(queryset.order_by("-created_at"), request, view=self)
-            serializer = UserSerializer(paginated_queryset, many=True)
+            page = paginator.paginate_queryset(queryset, request, view=self)
+            serializer = UserSerializer(page, many=True)
 
             # Count active and inactive users
             active_count = queryset.filter(is_active=True).count()

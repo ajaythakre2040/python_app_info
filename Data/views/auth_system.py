@@ -55,10 +55,8 @@ class LoginAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # -----------------------------
-        # FIND USER
-        # -----------------------------
         if username.isdigit():
+
             user = User.objects.filter(
                 mobile_number=username,
                 deleted_at__isnull=True
@@ -69,13 +67,12 @@ class LoginAPIView(APIView):
                 email_id__iexact=username,
                 deleted_at__isnull=True
             ).first()
-
         else:
-            user = User.objects.filter(
-                name__iexact=username,
-                deleted_at__isnull=True
-            ).first()
 
+            return Response(
+                {"success": False, "message": "Invalid username. Use email or mobile number."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         if not user:
             return Response(
                 {"success": False, "message": "User not found"},
@@ -192,7 +189,17 @@ class ForceLogoutAPIView(APIView):
             )
 
         # username se user find karo
-        user = User.objects.filter(name__iexact=username).first()
+        if username.isdigit():
+            user = User.objects.filter(mobile_number=username).first()
+
+        elif "@" in username and "." in username:
+            user = User.objects.filter(email_id__iexact=username).first()
+        
+        else:
+            return Response(
+                {"success": False, "message": "Invalid username. Use email or mobile number."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         if not user:
             return Response(

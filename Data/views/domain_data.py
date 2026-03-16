@@ -3,7 +3,6 @@ from rest_framework.permissions import IsAuthenticated
 from ..models import User
 from ..permissions.authentication import LoginTokenAuthentication
 from ..serializer import DomainSerializer
-from ..utils.status import update_user_status
 from ..utils.pagination import CustomPagination
 from rest_framework.permissions import IsAuthenticated
 
