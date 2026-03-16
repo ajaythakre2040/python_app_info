@@ -12,7 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User 
         fields = "__all__"
-        read_only_fields = ['is_active','created_at','updated_at','deleted_at',]
+        read_only_fields = ['created_at','updated_at','deleted_at',]
 
     def validate_email_id(self, value):
 
@@ -44,9 +44,6 @@ class UserSerializer(serializers.ModelSerializer):
         return user
     
     def update(self, instance, validated_data):
-        password = validated_data.pop("password",None)
-        if password:
-            validated_data["password"]=make_password(password)
-            Password_History.objects.create(user=instance, password= validated_data["password"])
+        validated_data.pop("password", None)   # password update block
         return super().update(instance, validated_data)
 
