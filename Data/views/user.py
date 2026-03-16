@@ -90,27 +90,18 @@ class UserAPIView(APIView):
     def patch(self, request, id):
         user = get_object_or_404(User, id=id, deleted_at__isnull=True)
         data = request.data.copy()
-        password = data.get("password")
 
-        if password:
-            try:
-                data["password"] = validate_custom_password(password)
-                if is_password_reused(user, password):
-                    return Response({"error": "Password was used recently"}, status=status.HTTP_400_BAD_REQUEST)
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        if "password" in data and not data["password"]:
+            data.pop("password")
 
         serializer = UserSerializer(user, data=data, partial=True)
-        if serializer.is_valid():
-            if password:
-                hashed_password = make_password(password)
-                serializer.save(password=hashed_password, updated_by=request.user)
-                Password_History.objects.create(user=user, password=hashed_password)
-            else:
-                serializer.save(updated_by=request.user)
 
-            return Response({"success": True, "message": "User updated successfully"},
-                            status=status.HTTP_200_OK)
+        if serializer.is_valid():
+            serializer.save(updated_by=request.user)
+
+            return Response(
+            {"success": True, "message": "User updated successfully"},
+            status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
