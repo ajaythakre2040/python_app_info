@@ -24,7 +24,7 @@ DELETE              /api/users/<id>/                 →Delete user
 ############################## DATA APP #################################
 
 GET                /api/app-data/                   →GET APP DATA
-GET BY ID          /api/app-data/<user_id>/              →GET BY ID APP DATA
+GET BY ID          /api/app-data/<user_id>/         →GET BY ID APP DATA
 POST               /api/app-data/                   →POST APP DATA
 PATCH              /api/app-data/<id>/              →Update APP DATA
 DELETE             /api/app-data/<id>/              →DELETE APP DATA
