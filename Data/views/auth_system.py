@@ -19,6 +19,7 @@ from ..permissions.authentication import LoginTokenAuthentication
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import IntegrityError
 from ..permissions.login_attempt import check_login_attempts,register_failed_attempt,reset_login_attempts
+
 ##======================================== Register API =================================#
 class RegisterAPIView(APIView):
     permission_classes = [AllowAny]
@@ -31,7 +32,7 @@ class RegisterAPIView(APIView):
 
         # generate tokens but do not record a login event – registration
         # shouldn't lock the account for later logins
-        tokens = token_generate(user, request, log_history=False)
+        # tokens = token_generate(user, request, log_history=False)
 
         return Response({
             "success": True,
