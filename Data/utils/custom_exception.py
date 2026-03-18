@@ -2,31 +2,32 @@ from rest_framework.views import exception_handler
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import IntegrityError, DataError, ProgrammingError
-from rest_framework.exceptions import ValidationError, AuthenticationFailed, PermissionDenied
+from rest_framework.exceptions import (ValidationError,AuthenticationFailed,PermissionDenied,NotAuthenticated)
 
 
 def custom_exception_handler(exc, context):
-    """
-    Global exception handler for DRF
-    """
-
     response = exception_handler(exc, context)
 
-    # DRF handled exceptions (Validation, Auth etc.)
+    # ✅ DRF handled exceptions
     if response is not None:
-        message = response.data
 
+        # 🔹 Validation Error (clean format)
         if isinstance(exc, ValidationError):
             if isinstance(response.data, dict):
-                message = "; ".join([f"{k}: {', '.join(v) if isinstance(v, list) else str(v)}" for k, v in response.data.items()])
+                message = "; ".join([
+                    f"{k}: {', '.join(v) if isinstance(v, list) else str(v)}"
+                    for k, v in response.data.items()
+                ])
             else:
                 message = str(response.data)
 
-        elif isinstance(exc, AuthenticationFailed):
-            message = "Authentication failed."
+        # 🔹 Auth + Permission (IMPORTANT: keep original message)
+        elif isinstance(exc, (AuthenticationFailed, NotAuthenticated, PermissionDenied)):
+            message = str(exc)
 
-        elif isinstance(exc, PermissionDenied):
-            message = "You do not have permission to perform this action."
+        # 🔹 Other DRF errors
+        else:
+            message = response.data.get("detail", str(response.data))
 
         return Response(
             {
@@ -36,7 +37,7 @@ def custom_exception_handler(exc, context):
             status=response.status_code
         )
 
-    # Database duplicate error
+    # ❌ Database Errors
     if isinstance(exc, IntegrityError):
         return Response(
             {
@@ -46,31 +47,29 @@ def custom_exception_handler(exc, context):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Database value too long error
     if isinstance(exc, DataError):
         return Response(
             {
                 "success": False,
-                "message": "Input value exceeds the allowed length."
+                "message": "Input value exceeds allowed limit."
             },
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Other database errors
     if isinstance(exc, ProgrammingError):
         return Response(
             {
                 "success": False,
-                "message": "A database error occurred."
+                "message": "Database error occurred."
             },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-    # Fallback error
+    # ❌ Fallback
     return Response(
         {
             "success": False,
-            "message": "An unexpected error occurred."
+            "message": "Something went wrong. Please try again later."
         },
         status=status.HTTP_500_INTERNAL_SERVER_ERROR
     )
